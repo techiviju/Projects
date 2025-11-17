@@ -1,0 +1,89 @@
+<%@page import="com.hms.dao.SpecialistDAO"%>
+<%@page import="com.hms.entity.Specialist"%>
+<%@page import="com.hms.db.DBConnection"%>
+<%@page import="java.util.*"%>
+<%@ taglib prefix="c" uri="jakarta.tags.core"%>
+<%@page isELIgnored="false"%>
+<!DOCTYPE html>
+<html>
+<head>
+<title>Add Doctor | Admin</title>
+<%@include file="../component/allcss.jsp"%>
+<link rel="stylesheet" href="../component/theme.css">
+</head>
+<body>
+	<%@ include file="../component/navbar.jsp" %>
+
+
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-6">
+      <div class="card my-card">
+        <div class="card-body">
+          <h3 class="text-center page-title mb-4">Add Doctor</h3>
+
+          <!-- Messages -->
+          <c:if test="${not empty successMsg}">
+            <div class="alert alert-success text-center">${successMsg}</div>
+            <c:remove var="successMsg" scope="session"/>
+          </c:if>
+          <c:if test="${not empty errorMsg}">
+            <div class="alert alert-danger text-center">${errorMsg}</div>
+            <c:remove var="errorMsg" scope="session"/>
+          </c:if>
+
+          <form action="../addDoctor" method="post" class="row g-3">
+            <div class="col-md-12">
+              <label class="form-label">Full Name</label>
+              <input type="text" name="fullName" class="form-control" placeholder="Dr. John Doe" required>
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label">Date of Birth</label>
+              <input type="date" name="dateOfBirth" class="form-control">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Qualification</label>
+              <input type="text" name="qualification" class="form-control" placeholder="MBBS, MD">
+            </div>
+
+            <div class="col-md-12">
+              <label class="form-label">Specialist</label>
+              <select name="specialist" class="form-select">
+                <option disabled selected>--- Select ---</option>
+                <%
+                  SpecialistDAO spDAO = new SpecialistDAO(DBConnection.getConn());
+                  List<Specialist> list = spDAO.getAllSpecialist();
+                  for (Specialist sp : list) {
+                %>
+                  <option><%=sp.getSpecialistName()%></option>
+                <% } %>
+              </select>
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label">Email</label>
+              <input type="email" name="email" class="form-control" placeholder="doctor@example.com" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Phone</label>
+              <input type="text" name="phone" class="form-control" placeholder="+91 9876543210">
+            </div>
+
+            <div class="col-md-12">
+              <label class="form-label">Password</label>
+              <input type="password" name="password" class="form-control" placeholder="Enter password" required>
+            </div>
+
+            <div class="col-md-12">
+              <button type="submit" class="btn btn-primary w-100">Register Doctor</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,75 @@
+<%@page import="com.hms.entity.Doctor"%>
+<%@page import="com.hms.db.DBConnection"%>
+<%@page import="com.hms.dao.DoctorDAO"%>
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@page isELIgnored="false"%>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Doctor Dashboard</title>
+<%@include file="../component/allcss.jsp" %>
+<style>
+  .my-card {
+    border-radius: 14px;
+    box-shadow: 0 8px 32px rgba(11,85,98,0.08);
+    border: none;
+    background: white;
+    transition: transform 0.3s, box-shadow 0.3s;
+  }
+  .my-card:hover {
+    box-shadow: 0 12px 40px rgba(11,85,98,0.15);
+    transform: translateY(-6px);
+  }
+  .page-title {
+    color: var(--primary);
+    font-weight: 700;
+  }
+  .icon-large {
+    font-size: 3rem;
+    color: var(--accent);
+  }
+  .text-success {
+    color: var(--accent) !important;
+  }
+</style>
+</head>
+<body>
+	<%@ include file="../component/navbar.jsp" %>
+
+<c:if test="${empty doctorObj}">
+  <c:redirect url="../doctor_login.jsp" />
+</c:if>
+
+<div class="container py-5">
+  <h2 class="page-title text-center mb-4">Doctor Dashboard</h2>
+
+  <%
+    DoctorDAO docDAO = new DoctorDAO(DBConnection.getConn());
+    int totalNumberOfDoctor = docDAO.countTotalDoctor();
+    Doctor currentLoginDoctor = (Doctor)session.getAttribute("doctorObj");
+    int totalAppointments = docDAO.countTotalAppointmentByDoctorId(currentLoginDoctor.getId());
+  %>
+
+  <div class="row justify-content-center gy-4">
+    <div class="col-md-4 col-sm-10">
+      <div class="card my-card text-center p-4">
+        <i class="fa-solid fa-user-doctor icon-large"></i>
+        <h4 class="mt-3 text-success">Doctors</h4>
+        <p class="fs-5"><%= totalNumberOfDoctor %></p>
+      </div>
+    </div>
+    <div class="col-md-4 col-sm-10">
+      <div class="card my-card text-center p-4">
+        <i class="fa-solid fa-calendar-check icon-large"></i>
+        <h4 class="mt-3 text-success">Total Appointments</h4>
+        <p class="fs-5"><%= totalAppointments %></p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%@ include file="../component/footer.jsp" %>
+</body>
+</html>

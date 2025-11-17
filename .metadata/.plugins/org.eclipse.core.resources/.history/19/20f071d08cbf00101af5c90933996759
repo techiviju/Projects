@@ -1,0 +1,112 @@
+<%@page import="com.hms.dao.DoctorDAO"%>
+<%@page import="com.hms.db.DBConnection"%>
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<%@ taglib prefix="c" uri="jakarta.tags.core"%>
+<%@page isELIgnored="false"%>
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Dashboard</title>
+    <%@include file="../component/allcss.jsp"%>
+</head>
+<body>
+    <%@include file="navbar.jsp"%>
+
+    <div class="container p-4">
+        <div class="row">
+            <div class="col-md-12">
+                <h2 class="myP-color text-center">Admin Dashboard</h2>
+                <c:if test="${not empty successMsg }">
+                    <div class="alert alert-success text-center" role="alert">${successMsg}</div>
+                    <c:remove var="successMsg" scope="session" />
+                </c:if>
+                <c:if test="${not empty errorMsg }">
+                    <div class="alert alert-danger text-center" role="alert">${errorMsg}</div>
+                    <c:remove var="errorMsg" scope="session" />
+                </c:if>
+            </div>
+        </div>
+
+        <%
+            DoctorDAO docDAO = new DoctorDAO(DBConnection.getConn());
+            int totalNumberOfDoctor = docDAO.countTotalDoctor();
+            int totalNumberOfUser = docDAO.countTotalUser();
+            int totalNumberOfAppointment = docDAO.countTotalAppointment();
+            int totalNumberOfSpecialist = docDAO.countTotalSpecialist();
+        %>
+
+        <div class="row g-4 mt-2">
+            <div class="col-md-3">
+                <div class="card my-card p-3">
+                    <div class="card-body text-center">
+                        <i class="fa-solid fa-user-doctor fa-3x myP-color"></i>
+                        <h4 class="mt-3">Doctor</h4>
+                        <h5 class="fs-1"><%= totalNumberOfDoctor %></h5>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-3">
+                <div class="card my-card p-3">
+                    <div class="card-body text-center">
+                        <i class="fas fa-user-circle fa-3x myP-color"></i>
+                        <h4 class="mt-3">User</h4>
+                        <h5 class="fs-1"><%= totalNumberOfUser %></h5>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <div class="card my-card p-3">
+                    <div class="card-body text-center">
+                        <i class="fa-solid fa-calendar-check fa-3x myP-color"></i>
+                        <h4 class="mt-3">Appointment</h4>
+                        <h5 class="fs-1"><%= totalNumberOfAppointment %></h5>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-3">
+                <div class="card my-card p-3 text-center">
+                    <div class="card-body">
+                        <i class="fa-solid fa-stethoscope fa-3x myP-color"></i>
+                        <h4 class="mt-3">Specialist</h4>
+                        <h5 class="fs-1"><%= totalNumberOfSpecialist %></h5>
+                    </div>
+                    <div class="card-footer bg-transparent border-0">
+                        <button class="btn btn-primary" data-bs-toggle="modal"
+                            data-bs-target="#specialistModal">Add Specialist</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div> <div class="modal fade" id="specialistModal" tabindex="-1"
+        aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title myP-color" id="exampleModalLabel">Add Specialist</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"
+                        aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form action="../addSpecialist" method="post">
+                        <div class="form-group mb-3">
+                            <label class="form-label">Enter Specialist Name</label> 
+                            <input type="text" name="specialistName" placeholder="Enter Specialist Name" class="form-control" required />
+                        </div>
+                        <div class="text-center">
+                            <button type="submit" class="btn btn-primary">Add</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+</body>
+</html>

@@ -1,0 +1,290 @@
+<%@page import="com.hms.entity.Doctor"%>
+<%@page import="java.util.List"%>
+<%@page import="com.hms.db.DBConnection"%>
+<%@page import="com.hms.dao.DoctorDAO"%>
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+	pageEncoding="UTF-8"%>
+<%@ taglib prefix="c" uri="jakarta.tags.core"%>
+<%@page isELIgnored="false"%>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>User Appointment Page</title>
+<%@include file="component/allcss.jsp"%>
+
+<style>
+	/* === Page + Card === */
+	body {
+		background-color: #f7f9fc;
+	}
+
+	.my-card {
+		border: none;
+		border-radius: 1rem;
+		box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+		transition: transform 0.25s ease, box-shadow 0.25s ease;
+		background: #fff;
+		overflow: hidden;
+	}
+
+	.my-card:hover {
+		transform: translateY(-4px);
+		box-shadow: 0 10px 30px rgba(0, 0, 0, 0.10);
+	}
+
+	.myP-color { color: #007bff; }
+	.my-bg-color { background-color: #007bff !important; }
+	.btn.my-bg-color:hover { background-color: #0056b3 !important; }
+
+	/* === Form Controls === */
+	input.form-control, select.form-select, textarea.form-control {
+		border-radius: 0.6rem;
+		border: 1px solid #e4edf7;
+		padding: .6rem .8rem;
+		transition: border-color .2s ease, box-shadow .2s ease;
+	}
+	input.form-control:focus, select.form-select:focus, textarea.form-control:focus{
+		border-color: #007bff;
+		box-shadow: 0 0 0 0.18rem rgba(0,123,255,0.12);
+	}
+
+	label.form-label { font-weight: 600; color: #2b3742; }
+	#emailError { font-size: .85rem; color: #dc3545; }
+
+	/* === IMAGE LAYOUT FIXES === */
+
+	/* Wrapper used for desktop/tablet: background-image with centered cover cropping */
+	.appointment-visual {
+		width: 100%;
+		/* aspect-ratio gives consistent height vs width — adjust as needed */
+		aspect-ratio: 4 / 5; /* tall portrait — change to 16/9 for landscape */
+		border-radius: 1rem;
+		background-position: center center;
+		background-size: cover;
+		background-repeat: no-repeat;
+		box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+	}
+
+	/* Make the background-image crisp on high-density displays */
+	.appointment-visual::after {
+		content: ""; display:block; width:100%; height:100%;
+		border-radius: inherit;
+	}
+
+	/* On small screens, we show a regular <img> (uncropped) above the form for full visibility */
+	.appointment-image-mobile {
+		width: 100%;
+		height: auto;
+		border-radius: 1rem;
+		object-fit: contain;
+		box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+	}
+
+	/* Spacing tweaks for smaller screens */
+	@media (max-width: 767.98px) {
+		.container.py-5 { padding-left: 1rem; padding-right: 1rem; }
+		.card-body { padding: 1.25rem; }
+		h3.text-center { font-size: 1.45rem; }
+	}
+
+	/* Optional: slightly larger visual on wide screens */
+	@media (min-width: 1200px) {
+		.appointment-visual { aspect-ratio: 3 / 4; } /* slightly wider on very large screens */
+	}
+</style>
+
+<!-- JS: date min + email validation (unchanged logic, kept simple) -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+	// Min date = today
+	const today = new Date().toISOString().split('T')[0];
+	const apptEl = document.getElementById("appointmentDate");
+	if (apptEl) apptEl.setAttribute('min', today);
+
+	// Email validation
+	const emailInput = document.getElementById("email");
+	const emailError = document.getElementById("emailError");
+	const emailPattern = /^(?!.*\.\.)[a-zA-Z0-9._%+-]{2,64}@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+
+	function validateEmail() {
+		if (!emailInput) return true;
+		const value = emailInput.value.trim();
+		emailError.textContent = "";
+		emailInput.classList.remove("is-valid", "is-invalid");
+
+		if (value === "") {
+			emailError.textContent = "Email is required.";
+			emailInput.classList.add("is-invalid");
+			return false;
+		}
+
+		if (!emailPattern.test(value)) {
+			emailError.textContent = "Invalid email format (e.g., user@example.com)";
+			emailInput.classList.add("is-invalid");
+			return false;
+		}
+
+		emailInput.classList.add("is-valid");
+		return true;
+	}
+
+	if (emailInput) {
+		emailInput.addEventListener("input", validateEmail);
+	}
+
+	const form = document.querySelector("form");
+	if (form) {
+		form.addEventListener("submit", function(e) {
+			if (!validateEmail()) {
+				e.preventDefault();
+				if (emailInput) emailInput.focus();
+			}
+		});
+	}
+});
+</script>
+</head>
+
+<body>
+	<%@include file="component/navbar.jsp"%>
+
+	<!-- Banner -->
+	<div class="container-fluid my-bg-img py-5 text-center d-flex align-items-center justify-content-center">
+		<h2 class="text-white fw-bold display-6">Book an Appointment</h2>
+	</div>
+
+	<!-- Appointment Section -->
+	<div class="container py-5">
+		<div class="row g-4 align-items-start">
+			
+			<!-- LEFT: Desktop/Tablet visual (background cover) -->
+			<div class="col-12 col-md-5">
+				<!-- Desktop/Tablet: background-image div (keeps aspect and centers important content) -->
+				<div
+					class="appointment-visual d-none d-md-block"
+					style="background-image: url('img/doc6.png');">
+				</div>
+
+				<!-- Mobile: plain img above the form so nothing important is cropped -->
+				<img src="img/doc6.png" alt="Doctor" class="appointment-image-mobile d-block d-md-none mb-3">
+			</div>
+
+			<!-- RIGHT: Form -->
+			<div class="col-12 col-md-7">
+				<div class="card my-card">
+					<div class="card-body p-4 p-md-5">
+						<h3 class="text-center myP-color mb-4">User Appointment</h3>
+
+						<!-- Messages -->
+						<c:if test="${not empty successMsg}">
+							<div class="alert alert-success text-center">${successMsg}</div>
+							<c:remove var="successMsg" scope="session"/>
+						</c:if>
+						<c:if test="${not empty errorMsg}">
+							<div class="alert alert-danger text-center">${errorMsg}</div>
+							<c:remove var="errorMsg" scope="session"/>
+						</c:if>
+
+						<!-- Form (backend logic preserved) -->
+						<form class="row g-3" action="addAppointment" method="post">
+							<input type="hidden" name="userId" value="${ userObj.id }">
+
+							<div class="col-md-6">
+								<label class="form-label">Full Name</label>
+								<input required name="fullName" type="text"
+									placeholder="Enter full name" class="form-control"
+									pattern="^[A-Za-z\\s]{2,40}$" maxlength="40"
+									oninput="this.value = this.value.replace(/[^A-Za-z ]/g, '')"
+									title="2-40 letters only, no numbers/symbols">
+							</div>
+
+							<div class="col-md-6">
+								<label class="form-label">Gender</label>
+								<select class="form-select" name="gender" required>
+									<option selected disabled value="">Select Gender</option>
+									<option value="male">Male</option>
+									<option value="female">Female</option>
+								</select>
+							</div>
+
+							<div class="col-md-6">
+								<label class="form-label">Age</label>
+								<input name="age" required type="number" placeholder="Enter your Age"
+									class="form-control" min="1" max="115"
+									oninput="if(this.value < 1) this.value='';"
+									title="Valid age: 1 to 115">
+							</div>
+
+							<div class="col-md-6">
+								<label class="form-label">Appointment Date</label>
+								<input required name="appointmentDate" type="date"
+									class="form-control" id="appointmentDate">
+							</div>
+
+							<div class="col-md-6">
+								<label class="form-label">Email</label>
+								<input required id="email" name="email" type="email"
+									placeholder="Enter Email" class="form-control" maxlength="75">
+								<div id="emailError" class="mt-1"></div>
+							</div>
+
+							<div class="col-md-6">
+								<label class="form-label">Phone</label>
+								<input name="phone" required type="tel" placeholder="Enter 10-digit number"
+									class="form-control" pattern="^\\d{10}$" maxlength="10"
+									oninput="this.value = this.value.replace(/[^0-9]/g, '');"
+									title="Enter valid 10-digit phone number">
+							</div>
+
+							<div class="col-md-6">
+								<label class="form-label">Diseases</label>
+								<input required name="diseases" type="text"
+									placeholder="Enter diseases" class="form-control">
+							</div>
+
+							<div class="col-md-6">
+								<label class="form-label">Doctor</label>
+								<select required class="form-select" name="doctorNameSelect">
+									<option selected disabled value="">Select Doctor</option>
+									<%
+										DoctorDAO doctorDAO = new DoctorDAO(DBConnection.getConn());
+										List<Doctor> listOfDoctor = doctorDAO.getAllDoctor();
+										for (Doctor d : listOfDoctor) {
+									%>
+									<option value="<%=d.getId()%>">
+										<%=d.getFullName()%> (<%=d.getSpecialist()%>)
+									</option>
+									<% } %>
+								</select>
+							</div>
+
+							<div class="col-12">
+								<label class="form-label">Full Address</label>
+								<textarea name="address" required class="form-control"
+									rows="3" placeholder="Enter full address"></textarea>
+							</div>
+
+							<!-- Submit / Login button -->
+							<c:if test="${empty userObj}">
+								<div class="col-12 mt-3">
+									<a href="user_login.jsp" class="btn my-bg-color text-white w-100 py-2">Login to Book Appointment</a>
+								</div>
+							</c:if>
+
+							<c:if test="${not empty userObj}">
+								<div class="col-12 mt-3">
+									<button type="submit" class="btn my-bg-color text-white w-100 py-2">Submit Appointment</button>
+								</div>
+							</c:if>
+						</form>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<%@include file="component/footer.jsp"%>
+</body>
+</html>

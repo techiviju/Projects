@@ -1,0 +1,463 @@
+<%@page import="com.hms.entity.Doctor"%>
+<%@page import="java.util.List"%>
+<%@page import="com.hms.db.DBConnection"%>
+<%@page import="com.hms.dao.DoctorDAO"%>
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ taglib prefix="c" uri="jakarta.tags.core"%>
+<%@page isELIgnored="false"%>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Book Appointment | Doctor Patient Portal</title>
+<%@include file="component/allcss.jsp"%>
+
+<style>
+/* ===== Page base ===== */
+:root{
+  --glass-bg: rgba(255,255,255,0.12);
+  --glass-border: rgba(255,255,255,0.2);
+  --accent: #2b7be4;
+  --accent-2: #00bfff;
+  --white-90: rgba(255,255,255,0.95);
+}
+
+html,body { height:100%; margin:0; font-family: 'Poppins', sans-serif; }
+
+/* background image and tint */
+.appointment-section {
+  position:relative;
+  min-height:100vh;
+  width:100%;
+  background: url('img/hospital1.jpg') center/cover no-repeat;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding: 60px 20px;
+}
+
+/* top blur overlay to match header effect */
+.appointment-section::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  background: linear-gradient(180deg, rgba(10,60,130,0.28) 0%, rgba(0,115,200,0.18) 45%, rgba(0,80,140,0.12) 100%);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index:0;
+}
+
+/* title above the card */
+.page-title {
+  position:relative;
+  z-index:2;
+  color:var(--white-90);
+  text-align:center;
+  margin-bottom: 18px;
+}
+.page-title h2{
+  font-size:28px;
+  font-weight:700;
+  letter-spacing:0.2px;
+}
+
+/* glass card */
+.glass-form {
+  position:relative;
+  z-index:2;
+  width:100%;
+  max-width:980px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.06));
+  border-radius:16px;
+  padding:28px 32px 26px;
+  box-shadow: 0 20px 60px rgba(7,24,50,0.45);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  color: #fff;
+  overflow: visible; /* important: allow custom dropdown to not be clipped */
+}
+
+/* form labels and inputs */
+label.form-label { display:block; font-weight:600; color: rgba(255,255,255,0.95); margin-bottom:8px; font-size:0.95rem; }
+.form-row { display:flex; gap:20px; align-items:flex-start; margin-bottom:16px; }
+.col { flex:1; min-width:0; } /* allow inputs to shrink */
+.form-control, .form-select {
+  width:100%;
+  padding:10px 12px;
+  border-radius:10px;
+  border:1px solid rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.06);
+  color:#fff;
+  outline:none;
+  transition: all 0.18s ease;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.02);
+}
+.form-control::placeholder { color: rgba(255,255,255,0.6); }
+.form-control:focus, .form-select:focus {
+  border-color: rgba(0,180,255,0.9);
+  box-shadow: 0 6px 18px rgba(0,130,255,0.08);
+  background: rgba(255,255,255,0.08);
+}
+
+/* full width address */
+textarea.form-control { min-height:86px; resize:vertical; }
+
+/* submit button */
+.btn.my-bg-color {
+  background: linear-gradient(180deg, #346cf0, #274fc4);
+  color:#fff;
+  border:none;
+  padding:12px 18px;
+  font-weight:700;
+  border-radius:10px;
+  width:100%;
+  cursor:pointer;
+  box-shadow: 0 8px 22px rgba(37,83,170,0.22);
+  transition: transform .12s ease, box-shadow .12s ease;
+}
+.btn.my-bg-color:hover { transform: translateY(-2px); box-shadow: 0 14px 30px rgba(37,83,170,0.28); }
+
+/* Alerts */
+.alert { border-radius:8px; padding:10px 12px; font-weight:600; }
+
+/* === CUSTOM SELECT (replaces native dropdown visually) === */
+.custom-select {
+  position:relative;
+  user-select:none;
+}
+.cs-selected{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:10px 12px;
+  border-radius:10px;
+  border:1px solid rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.04);
+  cursor:pointer;
+  color: #fff;
+}
+.cs-selected .placeholder { color: rgba(255,255,255,0.65); }
+.cs-caret { margin-left:10px; transform:rotate(0deg); transition: transform .18s ease; opacity:0.95; }
+
+/* options panel */
+.cs-options {
+  position:absolute;
+  left:0;
+  right:0;
+  top:calc(100% + 8px);
+  background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
+  border:1px solid rgba(255,255,255,0.08);
+  border-radius:10px;
+  padding:8px;
+  box-shadow: 0 12px 40px rgba(3,20,60,0.55);
+  z-index:9999;
+  max-height:220px;
+  overflow:auto;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+.cs-option {
+  padding:10px 12px;
+  border-radius:8px;
+  color:#fff;
+  cursor:pointer;
+  font-weight:600;
+  margin:4px 2px;
+}
+.cs-option:hover { background: rgba(255,255,255,0.05); }
+
+/* small helper text (error) */
+.text-danger { color: #ffb3b3; font-weight:600; margin-top:6px; }
+
+/* responsive */
+@media (max-width:900px){
+  .glass-form { padding:22px; max-width:760px; }
+  .form-row { flex-direction:column; gap:12px; }
+}
+@media (max-width:520px){
+  .glass-form { padding:18px; border-radius:12px; }
+  .page-title h2 { font-size:20px; }
+}
+</style>
+
+<script>
+/* Utilities: close any open custom selects */
+function closeAllCustomSelects(except=null){
+  document.querySelectorAll('.cs-options').forEach(function(opt){
+    if (opt !== except) opt.style.display='none';
+  });
+  document.querySelectorAll('.cs-selected .cs-caret').forEach(function(c){
+    c.style.transform = 'rotate(0deg)';
+  });
+}
+
+document.addEventListener('DOMContentLoaded', function(){
+
+  // set minimum date for appointmentDate
+  const today = new Date().toISOString().split('T')[0];
+  const apptEl = document.getElementById("appointmentDate");
+  if (apptEl) apptEl.setAttribute('min', today);
+
+  // email validation (unchanged)
+  const emailInput = document.getElementById("email");
+  const emailError = document.getElementById("emailError");
+  const emailPattern = /^(?!.*\.\.)[a-zA-Z0-9._%+-]{2,64}@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+
+  function validateEmail() {
+    if (!emailInput) return true;
+    const value = emailInput.value.trim();
+    if (emailError) emailError.textContent = "";
+    emailInput.classList.remove("is-valid","is-invalid");
+
+    if (value === "") {
+      if (emailError) emailError.textContent = "Email is required.";
+      emailInput.classList.add("is-invalid");
+      return false;
+    }
+    if (!emailPattern.test(value)) {
+      if (emailError) emailError.textContent = "Invalid email format (e.g., user@example.com)";
+      emailInput.classList.add("is-invalid");
+      return false;
+    }
+    emailInput.classList.add("is-valid");
+    return true;
+  }
+  if (emailInput) emailInput.addEventListener('input', validateEmail);
+  const form = document.querySelector('form');
+  if (form){
+    form.addEventListener('submit', function(e){
+      if (!validateEmail()){ e.preventDefault(); emailInput.focus(); }
+    });
+  }
+
+  /* ---------- CUSTOM SELECT BUILD ---------- */
+  // For every select we want to replace visually, look for container with data-custom-target
+  document.querySelectorAll('.custom-select[data-custom-target]').forEach(function(container){
+    const targetName = container.getAttribute('data-custom-target'); // name attr of original select
+    const originalSelect = document.querySelector('select[name="' + targetName + '"]');
+
+    if (!originalSelect) return;
+
+    // Hide original select visually but keep in DOM (for form submit & server)
+    originalSelect.style.display = 'none';
+
+    // Create selected element
+    const selected = document.createElement('div');
+    selected.className = 'cs-selected';
+    selected.tabIndex = 0;
+    selected.setAttribute('role','button');
+
+    const placeholderSpan = document.createElement('span');
+    placeholderSpan.className='placeholder';
+    // initial text from currently selected option or placeholder text attribute on original (if any)
+    const currentOpt = originalSelect.options[originalSelect.selectedIndex];
+    placeholderSpan.textContent = (currentOpt && currentOpt.value && currentOpt.value!=="") ? currentOpt.text : (originalSelect.getAttribute('data-placeholder') || 'Select');
+    selected.appendChild(placeholderSpan);
+
+    const caret = document.createElement('span');
+    caret.className = 'cs-caret';
+    caret.innerHTML = '&#9662;';
+    selected.appendChild(caret);
+
+    // options container
+    const optPanel = document.createElement('div');
+    optPanel.className = 'cs-options';
+    optPanel.style.display = 'none';
+
+    // build options from original select
+    Array.from(originalSelect.options).forEach(function(opt){
+      // skip disabled placeholder option with empty value (if present)
+      const item = document.createElement('div');
+      item.className = 'cs-option';
+      item.textContent = opt.text;
+      item.dataset.value = opt.value;
+      if (opt.disabled) {
+        item.style.opacity = '0.6';
+        item.style.fontWeight = '600';
+        item.style.cursor = 'not-allowed';
+      }
+
+      item.addEventListener('click', function(e){
+        if (opt.disabled) return;
+        // set native select value
+        originalSelect.value = this.dataset.value;
+        // update displayed text
+        placeholderSpan.textContent = this.textContent;
+        // hide panel
+        optPanel.style.display = 'none';
+        caret.style.transform = 'rotate(0deg)';
+        // dispatch change event so any listeners work
+        const ev = new Event('change', { bubbles:true });
+        originalSelect.dispatchEvent(ev);
+      });
+      optPanel.appendChild(item);
+    });
+
+    // append into container
+    container.appendChild(selected);
+    container.appendChild(optPanel);
+
+    // toggle on click
+    selected.addEventListener('click', function(e){
+      const isOpen = optPanel.style.display === 'block';
+      closeAllCustomSelects(); // close others
+      optPanel.style.display = isOpen ? 'none' : 'block';
+      caret.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(180deg)';
+    });
+
+    // keyboard support (basic)
+    selected.addEventListener('keydown', function(e){
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); selected.click(); }
+      if (e.key === 'Escape') { optPanel.style.display = 'none'; caret.style.transform = 'rotate(0deg)'; }
+    });
+
+    // close panel on outside click
+    document.addEventListener('click', function(ev){
+      if (!container.contains(ev.target)) {
+        optPanel.style.display = 'none';
+        caret.style.transform = 'rotate(0deg)';
+      }
+    });
+
+    // ensure dropdown fits: compute left/right and set max-width if needed (optional)
+    // (we keep options panel width same as container; because overflow visible is on card)
+  });
+
+}); // DOMContentLoaded
+</script>
+</head>
+
+<body>
+  <%@include file="component/navbar.jsp"%>
+
+  <section class="appointment-section">
+    <div class="page-title">
+      <h2>Book Your Appointment</h2>
+    </div>
+
+    <div class="glass-form">
+      <!-- Success / Error Messages -->
+      <c:if test="${not empty successMsg}">
+        <div class="alert alert-success text-center">${successMsg}</div>
+        <c:remove var="successMsg" scope="session" />
+      </c:if>
+      <c:if test="${not empty errorMsg}">
+        <div class="alert alert-danger text-center">${errorMsg}</div>
+        <c:remove var="errorMsg" scope="session" />
+      </c:if>
+
+      <!-- FORM -->
+      <form class="row g-3" action="addAppointment" method="post" novalidate>
+        <input type="hidden" name="userId" value="${userObj.id}">
+
+        <div class="form-row">
+          <div class="col">
+            <label class="form-label">Full Name</label>
+            <input required name="fullName" type="text" placeholder="Enter full name"
+              class="form-control" pattern="^[A-Za-z\\s]{2,40}$" maxlength="40"
+              oninput="this.value = this.value.replace(/[^A-Za-z ]/g, '')"
+              title="2-40 letters only, no numbers/symbols">
+          </div>
+
+          <div class="col">
+            <label class="form-label">Gender</label>
+
+            <!-- original select remains for backend, but hidden visually -->
+            <select name="gender" required data-placeholder="Select Gender" style="display:block;">
+              <option selected disabled value="">Select Gender</option>
+              <option value="male">Male</option>
+              <option value="female">Female</option>
+            </select>
+
+            <!-- custom visual select container (JS will hide native select) -->
+            <div class="custom-select" data-custom-target="gender" aria-hidden="false"></div>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="col">
+            <label class="form-label">Age</label>
+            <input name="age" required type="number" placeholder="Enter your Age"
+              class="form-control" min="1" max="115"
+              oninput="if(this.value < 1) this.value='';"
+              title="Valid age: 1 to 115">
+          </div>
+
+          <div class="col">
+            <label class="form-label">Appointment Date</label>
+            <input required name="appointmentDate" type="date" class="form-control" id="appointmentDate">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="col">
+            <label class="form-label">Email</label>
+            <input required id="email" name="email" type="email" placeholder="Enter Email"
+              class="form-control" maxlength="75">
+            <div id="emailError" class="text-danger"></div>
+          </div>
+
+          <div class="col">
+            <label class="form-label">Phone</label>
+            <input name="phone" required type="tel" placeholder="Enter 10-digit number"
+              class="form-control" pattern="^\\d{10}$" maxlength="10"
+              oninput="this.value = this.value.replace(/[^0-9]/g, '');"
+              title="Enter valid 10-digit phone number (e.g., 9999999999)">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="col">
+            <label class="form-label">Diseases</label>
+            <input required name="diseases" type="text" placeholder="Enter diseases" class="form-control">
+          </div>
+
+          <div class="col">
+            <label class="form-label">Doctor</label>
+
+            <!-- original select with server-populated options (kept intact) -->
+            <select name="doctorNameSelect" required data-placeholder="Select Doctor" style="display:block;">
+              <option selected disabled value="">Select Doctor</option>
+              <%
+                DoctorDAO doctorDAO = new DoctorDAO(DBConnection.getConn());
+                List<Doctor> listOfDoctor = doctorDAO.getAllDoctor();
+                for (Doctor d : listOfDoctor) {
+              %>
+              <option value="<%=d.getId()%>"><%=d.getFullName()%> (<%=d.getSpecialist()%>)</option>
+              <%
+                }
+              %>
+            </select>
+
+            <!-- custom visual select -->
+            <div class="custom-select" data-custom-target="doctorNameSelect"></div>
+          </div>
+        </div>
+
+        <div style="margin-bottom:14px;">
+          <label class="form-label">Full Address</label>
+          <textarea name="address" required class="form-control" rows="3" placeholder="Enter full address"></textarea>
+        </div>
+
+        <!-- Submit / Login -->
+        <c:if test="${empty userObj}">
+          <div class="col-12 mt-3">
+            <a href="user_login.jsp" class="btn my-bg-color" style="display:block;text-align:center;">Login to Book Appointment</a>
+          </div>
+        </c:if>
+
+        <c:if test="${not empty userObj}">
+          <div class="col-12 mt-3">
+            <button type="submit" class="btn my-bg-color">Submit Appointment</button>
+          </div>
+        </c:if>
+
+      </form>
+    </div>
+  </section>
+
+  <%@include file="component/footer.jsp"%>
+</body>
+</html>

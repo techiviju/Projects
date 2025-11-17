@@ -1,0 +1,226 @@
+<%@page import="com.hms.entity.Doctor"%>
+<%@page import="com.hms.dao.DoctorDAO"%>
+<%@page import="com.hms.entity.User"%>
+<%@page import="com.hms.entity.Appointment"%>
+<%@page import="java.util.List"%>
+<%@page import="com.hms.db.DBConnection"%>
+<%@page import="com.hms.dao.AppointmentDAO"%>
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<%@ taglib prefix="c" uri="jakarta.tags.core"%>
+<%@page isELIgnored="false"%>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>View Appointments | Doctor Patient Portal</title>
+    <%@include file="component/allcss.jsp"%>
+
+    <style>
+        /* ===== Background and Layout ===== */
+        body {
+            background: linear-gradient(
+                    rgba(0, 38, 77, 0.6),
+                    rgba(0, 38, 77, 0.6)
+                ),
+                url('https://images.unsplash.com/photo-1522199710521-72d69614c702?auto=format&fit=crop&w=1600&q=80');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            min-height: 100vh;
+            font-family: 'Poppins', sans-serif;
+            color: #212529;
+        }
+
+        /* ===== Page Title Banner ===== */
+        .my-bg-img {
+            background: rgba(13, 110, 253, 0.8);
+            backdrop-filter: blur(4px);
+            text-align: center;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .my-bg-img h2 {
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+
+        /* ===== Card Styling ===== */
+        .my-card {
+            border: none;
+            border-radius: 1rem;
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(8px);
+            box-shadow: 0 6px 25px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .my-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+        }
+
+        /* ===== Table Styling ===== */
+        table {
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        thead {
+            background: linear-gradient(135deg, #0d6efd, #6610f2);
+            color: #fff;
+        }
+
+        tbody tr {
+            transition: background-color 0.2s ease, transform 0.2s ease;
+        }
+
+        tbody tr:hover {
+            background-color: rgba(13, 110, 253, 0.1);
+            transform: scale(1.01);
+        }
+
+        .badge {
+            padding: 0.5em 0.75em;
+            font-size: 0.85rem;
+            border-radius: 0.5rem;
+        }
+
+        .myP-color {
+            color: #0d6efd;
+        }
+
+        /* ===== Responsive Tweaks ===== */
+        @media (max-width: 992px) {
+            .my-bg-img h2 {
+                font-size: 1.8rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .card-body {
+                padding: 1rem;
+            }
+            table th, table td {
+                font-size: 0.9rem;
+            }
+        }
+
+        @media (max-width: 576px) {
+            table thead {
+                display: none;
+            }
+            table, table tbody, table tr, table td {
+                display: block;
+                width: 100%;
+            }
+            table tr {
+                margin-bottom: 1rem;
+                background: rgba(255, 255, 255, 0.95);
+                border-radius: 8px;
+                padding: 10px;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            }
+            table td {
+                text-align: right;
+                padding-left: 50%;
+                position: relative;
+            }
+            table td::before {
+                content: attr(data-label);
+                position: absolute;
+                left: 10px;
+                width: 45%;
+                text-align: left;
+                font-weight: bold;
+                color: #0d6efd;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <%@include file="component/navbar.jsp"%>
+
+    <!-- Redirect if not logged in -->
+    <c:if test="${empty userObj }">
+        <c:redirect url="/user_login.jsp"></c:redirect>
+    </c:if>
+
+    <!-- Page Banner -->
+    <div class="container-fluid my-bg-img p-5 d-flex align-items-center justify-content-center">
+        <h2 class="text-white display-6">My Appointments</h2>
+    </div>
+
+    <!-- Appointment List -->
+    <div class="container my-5">
+        <div class="row g-4 align-items-start justify-content-center">
+            <div class="col-lg-9 col-md-10">
+                <div class="card my-card p-3 p-md-4">
+                    <div class="card-body">
+                        <h3 class="fw-bold text-center myP-color fs-4 mb-4">
+                            Appointment List
+                        </h3>
+
+                        <div class="table-responsive">
+                            <table class="table table-striped align-middle text-center">
+                                <thead>
+                                    <tr>
+                                        <th scope="col">Full Name</th>
+                                        <th scope="col">Gender</th>
+                                        <th scope="col">Age</th>
+                                        <th scope="col">Appointment Date</th>
+                                        <th scope="col">Phone</th>
+                                        <th scope="col">Diseases</th>
+                                        <th scope="col">Doctor Name</th>
+                                        <th scope="col">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <%
+                                        User user = (User) session.getAttribute("userObj");
+                                        DoctorDAO dDAO = new DoctorDAO(DBConnection.getConn());
+                                        AppointmentDAO appDAO = new AppointmentDAO(DBConnection.getConn());
+                                        
+                                        List<Appointment> list = appDAO.getAllAppointmentByLoginUser(user.getId());
+                                        for (Appointment apptList : list) {
+                                            Doctor doctor = dDAO.getDoctorById(apptList.getDoctorId());
+                                    %>
+                                    <tr>
+                                        <td data-label="Full Name"><%=apptList.getFullName()%></td>
+                                        <td data-label="Gender"><%=apptList.getGender()%></td>
+                                        <td data-label="Age"><%=apptList.getAge()%></td>
+                                        <td data-label="Appointment Date"><%=apptList.getAppointmentDate()%></td>
+                                        <td data-label="Phone"><%=apptList.getPhone()%></td>
+                                        <td data-label="Diseases"><%=apptList.getDiseases()%></td>
+                                        <td data-label="Doctor Name"><%=doctor.getFullName()%></td>
+                                        <td data-label="Status">
+                                            <%
+                                                if ("Pending".equals(apptList.getStatus())) {
+                                            %> 
+                                            <span class="badge bg-warning text-dark">Pending</span> 
+                                            <% } else { %> 
+                                            <span class="badge bg-success"><%=apptList.getStatus()%></span> 
+                                            <% } %>
+                                        </td>
+                                    </tr>
+                                    <%
+                                        }
+                                    %>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Side Image -->
+            <div class="col-lg-3 d-none d-lg-flex align-items-center justify-content-center">
+                <img alt="Doctor" src="img/wdoc.jpg" class="img-fluid rounded shadow-lg" style="max-height: 350px;">
+            </div>
+        </div>
+    </div>
+</body>
+</html>

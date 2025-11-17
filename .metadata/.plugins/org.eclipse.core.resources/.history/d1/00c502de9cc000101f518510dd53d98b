@@ -1,0 +1,112 @@
+/* ====== Modern Medical Blue Form Layout ====== */
+body {
+  font-family: "Poppins", sans-serif;
+  margin: 0;
+  padding: 0;
+  background: url('img/login-bg.png') center center/cover no-repeat fixed;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Overlay for better text contrast */
+body::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 60, 120, 0.55);
+  backdrop-filter: blur(3px);
+  z-index: 0;
+}
+
+/* Login container */
+.login-container {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  padding: 30px 15px;
+  display: flex;
+  justify-content: center;
+}
+
+/* Card styling */
+.login-card {
+  background: rgba(255, 255, 255, 0.97);
+  border-radius: 16px;
+  box-shadow: 0 8px 25px rgba(0, 50, 150, 0.3);
+  max-width: 450px;
+  width: 100%;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.login-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 10px 30px rgba(0, 70, 180, 0.4);
+}
+
+/* Headings */
+.login-card h3 {
+  color: #0056b3;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+/* Buttons */
+.my-bg-color {
+  background: linear-gradient(90deg, #007bff, #0056b3);
+  border: none;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+.my-bg-color:hover {
+  background: linear-gradient(90deg, #0056b3, #004099);
+  box-shadow: 0 0 12px rgba(0, 120, 255, 0.6);
+  transform: translateY(-1px);
+}
+
+/* Input Fields */
+.form-control {
+  border-radius: 8px;
+  padding: 10px 12px;
+  border: 1px solid #d0d0d0;
+  transition: all 0.25s ease;
+}
+.form-control:focus {
+  border-color: #007bff;
+  box-shadow: 0 0 8px rgba(0, 123, 255, 0.4);
+}
+.is-valid {
+  border-color: #28a745 !important;
+}
+.is-invalid {
+  border-color: #dc3545 !important;
+}
+
+/* Alerts */
+.alert {
+  border-radius: 8px;
+  font-weight: 500;
+}
+
+/* Text link colors */
+.myP-color {
+  color: #0056b3 !important;
+}
+.myP-color:hover {
+  color: #003d99 !important;
+  text-decoration: underline;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .login-card {
+    margin: 20px;
+    max-width: 100%;
+  }
+  body {
+    background-attachment: scroll;
+  }
+}

@@ -1,0 +1,69 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+	pageEncoding="UTF-8"%>
+<!-- for jstl tag -->
+<%@ taglib prefix="c" uri="jakarta.tags.core"%>
+<!-- end of jstl tag -->
+<%@page isELIgnored="false"%>
+
+<nav class="navbar navbar-expand-lg navbar-dark sticky-top" style="background-color: #4568dc;">
+	<div class="container-fluid">
+		<a class="navbar-brand" href="index.jsp"><i class="fa-sharp fa-solid fa-hospital me-2"></i> Doctor Patient Portal</a>
+		<button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+			data-bs-target="#navbarSupportedContent"
+			aria-controls="navbarSupportedContent" aria-expanded="false"
+			aria-label="Toggle navigation">
+			<span class="navbar-toggler-icon"></span>
+		</button>
+		<div class="collapse navbar-collapse" id="navbarSupportedContent">
+			<ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+
+				<!-- if user not logged in (GUEST) -->
+				<c:if test="${empty userObj and empty doctorObj and empty adminObj}">
+					<li class="nav-item">
+						<a class="nav-link active" aria-current="page" href="index.jsp"><i class="fa fa-home me-1"></i> HOME</a>
+					</li>
+					<li class="nav-item">
+						<a class="nav-link active" href="user_appointment.jsp"><i class="fa fa-book me-1"></i> APPOINTMENT</a>
+					</li>
+					<li class="nav-item">
+						<a class="nav-link active" href="user_login.jsp"><i class="fas fa-sign-in-alt me-1"></i> USER</a>
+					</li>
+					<li class="nav-item">
+						<a class="nav-link active" href="doctor_login.jsp"><i class="fa-solid fa-user-doctor me-1"></i> DOCTOR</a>
+					</li>
+					<li class="nav-item">
+						<a class="nav-link active" href="admin_login.jsp"><i class="fa-solid fa-user-shield me-1"></i> ADMIN</a>
+					</li>
+				</c:if>
+
+				<!-- if user is logged in -->
+				<c:if test="${not empty userObj }">
+					<li class="nav-item">
+						<a class="nav-link active" href="user_appointment.jsp"><i class="fa fa-book me-1"></i> APPOINTMENT</a>
+					</li>
+					<li class="nav-item">
+						<a class="nav-link active" href="view_appointment.jsp"><i class="fa fa-calendar-check-o me-1"></i> VIEW APPOINTMENT</a>
+					</li>
+					<li class="nav-item dropdown">
+						<a class="nav-link dropdown-toggle active" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+						   <i class="fa-solid fa-circle-user me-1"></i> ${userObj.fullName}
+						</a>
+						<ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
+							<li><a class="dropdown-item" href="change_password.jsp">Change Password</a></li>
+							<li><hr class="dropdown-divider"></li>
+							<li><a class="dropdown-item" href="userLogout">Logout</a></li>
+						</ul>
+					</li>
+				</c:if>
+				
+                <!-- Redirect if Doctor or Admin is logged in -->
+                <c:if test="${not empty doctorObj }">
+                    <c:redirect url="doctor/index.jsp" />
+                </c:if>
+                <c:if test="${not empty adminObj }">
+                    <c:redirect url="admin/index.jsp" />
+                </c:if>
+			</ul>
+		</div>
+	</div>
+</nav>

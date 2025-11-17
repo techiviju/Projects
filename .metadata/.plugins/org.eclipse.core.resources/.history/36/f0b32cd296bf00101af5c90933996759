@@ -1,0 +1,153 @@
+<%@page import="com.hms.entity.Doctor"%>
+<%@page import="com.hms.db.DBConnection"%>
+<%@page import="com.hms.dao.DoctorDAO"%>
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+	pageEncoding="UTF-8"%>
+
+<!-- JSTL Tag -->
+<%@ taglib prefix="c" uri="jakarta.tags.core"%>
+<%@page isELIgnored="false"%>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Doctor Dashboard | HMS</title>
+<%@include file="../component/allcss.jsp"%>
+
+<!-- ===== Custom Page Styles ===== -->
+<style>
+body {
+	background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+	min-height: 100vh;
+	display: flex;
+	flex-direction: column;
+}
+
+.dashboard-container {
+	flex: 1;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 2rem;
+}
+
+.dashboard-card {
+	background: white;
+	border: none;
+	border-radius: 20px;
+	box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.1);
+	transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.dashboard-card:hover {
+	transform: translateY(-5px);
+	box-shadow: 0px 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.dashboard-icon {
+	font-size: 3rem;
+	color: #0d6efd;
+	margin-bottom: 0.8rem;
+}
+
+.dashboard-text {
+	font-weight: 600;
+	color: #343a40;
+}
+
+.dashboard-number {
+	font-size: 2rem;
+	font-weight: 700;
+	color: #198754;
+}
+
+.page-title {
+	font-size: 2rem;
+	font-weight: 700;
+	text-align: center;
+	color: #0d6efd;
+	margin-bottom: 2rem;
+	position: relative;
+}
+
+.page-title::after {
+	content: "";
+	display: block;
+	width: 100px;
+	height: 4px;
+	background: #0d6efd;
+	margin: 10px auto 0;
+	border-radius: 2px;
+}
+
+@media (max-width: 768px) {
+	.dashboard-icon {
+		font-size: 2.2rem;
+	}
+	.dashboard-number {
+		font-size: 1.6rem;
+	}
+	.page-title {
+		font-size: 1.5rem;
+	}
+}
+</style>
+<!-- ===== End Custom Page Styles ===== -->
+
+</head>
+<body>
+
+	<%@include file="navbar.jsp"%>
+
+	<!-- ========== Access Control ========== -->
+	<c:if test="${empty doctorObj}">
+		<c:redirect url="../doctor_login.jsp"></c:redirect>
+	</c:if>
+	<!-- ========== End Access Control ========== -->
+
+	<div class="container dashboard-container">
+		<div class="w-100">
+			<p class="page-title">Doctor Dashboard</p>
+
+			<%
+				DoctorDAO docDAO = new DoctorDAO(DBConnection.getConn());
+				int totalNumberOfDoctor = docDAO.countTotalDoctor();
+				Doctor currentLoginDoctor = (Doctor) session.getAttribute("doctorObj");
+			%>
+
+			<div class="row g-4 justify-content-center">
+
+				<!-- Doctor Count Card -->
+				<div class="col-12 col-md-5">
+					<div class="card dashboard-card text-center p-4">
+						<i class="fa-solid fa-user-doctor dashboard-icon"></i>
+						<p class="dashboard-text mb-1">Total Doctors</p>
+						<p class="dashboard-number"><%= totalNumberOfDoctor %></p>
+					</div>
+				</div>
+
+				<!-- Appointment Count Card -->
+				<div class="col-12 col-md-5">
+					<div class="card dashboard-card text-center p-4">
+						<i class="fa-solid fa-calendar-check dashboard-icon"></i>
+						<p class="dashboard-text mb-1">Total Appointments</p>
+						<p class="dashboard-number">
+							<%= docDAO.countTotalAppointmentByDoctorId(currentLoginDoctor.getId()) %>
+						</p>
+					</div>
+				</div>
+
+			</div>
+
+			<!-- Optional Welcome Section -->
+			<div class="text-center mt-5">
+				<h5 class="text-muted">
+					Welcome, <span class="text-success fw-bold"><%= currentLoginDoctor.getFullName() %></span> 👋
+				</h5>
+			</div>
+		</div>
+	</div>
+
+</body>
+</html>

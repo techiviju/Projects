@@ -1,0 +1,145 @@
+<%@page import="java.util.List"%>
+<%@page import="com.hms.entity.Specialist"%>
+<%@page import="com.hms.dao.SpecialistDAO"%>
+<%@page import="com.hms.db.DBConnection"%>
+<%@ taglib prefix="c" uri="jakarta.tags.core"%>
+<%@page isELIgnored="false"%>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Edit Doctor Profile</title>
+<%@include file="../component/allcss.jsp"%>
+<style>
+  .my-card {
+    border-radius: 14px;
+    box-shadow: 0 8px 32px rgba(11,85,98,0.08);
+    border: none;
+    background: white;
+    padding: 1.75rem 1.5rem;
+  }
+  .page-title {
+    color: var(--primary);
+    font-weight: 700;
+  }
+  .btn-success {
+    background: linear-gradient(90deg, var(--accent), #c32b4f);
+    border-radius: 10px;
+    font-weight: 700;
+    border: none;
+    padding: 0.6rem 1.25rem;
+    transition: background 0.3s ease;
+  }
+  .btn-success:hover {
+    background: linear-gradient(90deg, #c32b4f, var(--accent));
+  }
+  .btn-primary {
+    border-radius: 10px;
+    font-weight: 700;
+  }
+  .btn-primary:hover {
+    background-color: #0a7a78;
+  }
+  .form-label {
+    font-weight: 600;
+    color: var(--primary);
+  }
+</style>
+</head>
+<body>
+
+	<%@ include file="../component/navbar.jsp" %>
+
+
+<c:if test="${empty doctorObj}">
+  <c:redirect url="../doctor_login.jsp" />
+</c:if>
+
+<div class="container py-5">
+  <div class="row justify-content-center g-4">
+
+    <!-- Password Change Card -->
+    <div class="col-lg-4">
+      <div class="card my-card">
+        <div class="card-body">
+          <h4 class="page-title text-center mb-4">Change Password</h4>
+          <c:if test="${not empty successMsg}">
+            <div class="alert alert-success text-center">${successMsg}</div>
+            <c:remove var="successMsg" scope="session"/>
+          </c:if>
+          <c:if test="${not empty errorMsg}">
+            <div class="alert alert-danger text-center">${errorMsg}</div>
+            <c:remove var="errorMsg" scope="session"/>
+          </c:if>
+
+          <form action="../doctorChangePassword" method="post" novalidate>
+            <div class="mb-3">
+              <label for="newPassword" class="form-label">New Password</label>
+              <input name="newPassword" id="newPassword" type="password" class="form-control" required minlength="6" />
+            </div>
+            <div class="mb-3">
+              <label for="oldPassword" class="form-label">Old Password</label>
+              <input name="oldPassword" id="oldPassword" type="password" class="form-control" required />
+            </div>
+            <input type="hidden" name="doctorId" value="${doctorObj.id}" />
+            <button type="submit" class="btn btn-primary w-100">Change Password</button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Profile Edit Card -->
+    <div class="col-lg-6">
+      <div class="card my-card">
+        <div class="card-body">
+          <h4 class="page-title text-center mb-4">Edit Doctor Profile</h4>
+
+          <form action="../doctorEditProfile" method="post" novalidate>
+            <div class="mb-3">
+              <label for="fullName" class="form-label">Full Name</label>
+              <input name="fullName" id="fullName" class="form-control" value="${doctorObj.fullName}" required maxlength="100" />
+            </div>
+
+            <div class="mb-3">
+              <label for="dateOfBirth" class="form-label">Date of Birth</label>
+              <input name="dateOfBirth" id="dateOfBirth" type="date" class="form-control" value="${doctorObj.dateOfBirth}" required />
+            </div>
+
+            <div class="mb-3">
+              <label for="qualification" class="form-label">Qualification</label>
+              <input name="qualification" id="qualification" class="form-control" value="${doctorObj.qualification}" required />
+            </div>
+
+            <div class="mb-3">
+              <label for="specialist" class="form-label">Specialist</label>
+              <select name="specialist" id="specialist" class="form-select" required>
+                <option selected>${doctorObj.specialist}</option>
+                <%
+                  SpecialistDAO spDAO = new SpecialistDAO(DBConnection.getConn());
+                  List<Specialist> spList = spDAO.getAllSpecialist();
+                  for (Specialist sp : spList) {
+                %>
+                  <option><%=sp.getSpecialistName()%></option>
+                <% } %>
+              </select>
+            </div>
+
+            <div class="mb-3">
+              <label for="phone" class="form-label">Phone</label>
+              <input name="phone" id="phone" class="form-control" value="${doctorObj.phone}" required maxlength="15" />
+            </div>
+
+            <input type="hidden" name="doctorId" value="${doctorObj.id}" />
+            <button type="submit" class="btn btn-success w-100">Update Profile</button>
+          </form>
+
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+</body>
+</html>

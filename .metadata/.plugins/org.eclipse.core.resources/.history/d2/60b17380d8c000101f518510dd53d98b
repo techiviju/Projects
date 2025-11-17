@@ -1,0 +1,223 @@
+<%@page import="com.hms.entity.Appointment"%>
+<%@page import="java.util.List"%>
+<%@page import="com.hms.entity.Doctor"%>
+<%@page import="com.hms.dao.AppointmentDAO"%>
+<%@page import="com.hms.db.DBConnection"%>
+<%@page import="com.hms.dao.DoctorDAO"%>
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<%@ taglib prefix="c" uri="jakarta.tags.core"%>
+<%@page isELIgnored="false"%>
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Doctor: Patient Appointments</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <%@include file="../component/allcss.jsp"%>
+
+<style>
+/* === GLASS MORPHISM STYLING === */
+body {
+    background-color: #f8faff; 
+    min-height: 100vh;
+    font-family: 'Poppins', sans-serif;
+    position: relative;
+    /* CRUCIAL FIX: Space for fixed navbar */
+    padding-top: 70px;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Blurred Background Image (Matches Dashboard) */
+body::before {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    /* Using a generic medical image path */
+    background: url('../img/medical_office.jpg') center center/cover no-repeat fixed;
+    filter: blur(8px) brightness(1.05);
+    opacity: 0.9;
+    z-index: -1;
+}
+
+/* Main Content Wrapper */
+.content-wrapper {
+    flex-grow: 1;
+    padding: 30px 20px;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start; /* Start from top below navbar */
+}
+
+/* Glass Morphism Card Container */
+.my-card {
+    /* Glass effect background */
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    border-radius: 1.5rem;
+    border: 1px solid rgba(220, 220, 220, 0.7);
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    width: 100%; /* Take full width of col-md-10 */
+    max-width: 1200px; /* Optional max width for large screens */
+    margin: 20px 0;
+}
+
+.my-card:hover {
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
+}
+
+/* Table Styling */
+.table th {
+    background-color: #1e88e5; /* Primary Blue for Header */
+    color: white;
+    font-weight: 600;
+    border-color: #1e88e5;
+    white-space: nowrap; /* Prevents wrapping of column headers */
+}
+
+.table tbody tr:hover {
+    background-color: rgba(30, 136, 229, 0.05); /* Light blue hover for rows */
+}
+
+/* Status Badges */
+.badge {
+    padding: 0.5em 0.75em;
+    border-radius: 0.5rem;
+    font-weight: 700;
+    font-size: 0.85em;
+}
+
+/* Responsive adjustments */
+@media (max-width: 992px) {
+    .table-responsive {
+        /* Allow horizontal scroll on smaller tables */
+        overflow-x: auto;
+    }
+}
+@media (max-width: 768px) {
+    .content-wrapper {
+        padding: 10px;
+    }
+}
+</style>
+
+</head>
+<body>
+    <%@include file="navbar.jsp"%>
+
+    <!-- Check if doctor is logged in -->
+	<c:if test="${empty doctorObj }">
+		<c:redirect url="../doctor_login.jsp"></c:redirect>
+	</c:if>
+
+    <div class="content-wrapper container-fluid">
+        <div class="row w-100 justify-content-center">
+            <div class="col-md-11">
+                
+                <!-- Main Header Title -->
+                <h2 class="text-center mb-4" style="color: #1e88e5; font-weight: 800;">
+                    <i class="fa-solid fa-calendar-check me-2"></i> My Appointments
+                </h2>
+
+                <div class="card my-card">
+                    <div class="card-body p-4">
+                        <h4 class="text-center text-secondary mb-4 border-bottom pb-2">
+                            <i class="fa-solid fa-list-check me-2"></i> Appointment List
+                        </h4>
+
+                        <!-- Message Handling -->
+                        <c:if test="${not empty successMsg }">
+                            <div class="alert alert-success text-center" role="alert">${successMsg}</div>
+                            <c:remove var="successMsg" scope="session" />
+                        </c:if>
+                        <c:if test="${not empty errorMsg }">
+                            <div class="alert alert-danger text-center" role="alert">${errorMsg}</div>
+                            <c:remove var="errorMsg" scope="session" />
+                        </c:if>
+                        
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover align-middle">
+                                <thead>
+                                    <tr>
+                                        <th scope="col">Full Name</th>
+                                        <th scope="col">Gender</th>
+                                        <th scope="col">Age</th>
+                                        <th scope="col">Appointment Date</th>
+                                        <th scope="col">Phone</th>
+                                        <th scope="col">Diseases</th>
+                                        <th scope="col">Status</th>
+                                        <th scope="col" class="text-center">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <%
+                                        // Retrieve doctor object from session
+                                        Doctor doctor = (Doctor) session.getAttribute("doctorObj");
+                                        // Initialize DAO
+                                        AppointmentDAO appDAO = new AppointmentDAO(DBConnection.getConn());
+                                        // Fetch all appointments for the logged-in doctor
+                                        List<Appointment> list = appDAO.getAllAppointmentByLoginDoctor(doctor.getId());
+                                        
+                                        if (list.isEmpty()) {
+                                    %>
+                                    <tr>
+                                        <td colspan="8" class="text-center text-muted py-4">No appointments found for you.</td>
+                                    </tr>
+                                    <%
+                                        }
+                                        
+                                        for (Appointment applist : list) {
+                                    %>
+                                    <tr>
+                                        <td><%=applist.getFullName()%></td>
+                                        <td><%=applist.getGender()%></td>
+                                        <td><%=applist.getAge()%></td>
+                                        <td><%=applist.getAppointmentDate()%></td>
+                                        <td><%=applist.getPhone()%></td>
+                                        <td><%=applist.getDiseases()%></td>
+                                        <td>
+                                        	<%
+                                                String status = applist.getStatus();
+                                                if ("Pending".equals(status)) {
+                                            %> <span class="badge bg-warning text-dark"><%=status%></span> <%
+                                                } else {
+                                            %> <span class="badge bg-success"><%=status%></span> <%
+                                                }
+                                            %>
+                                        </td>
+                                        <td class="text-center">
+                                            <%
+                                                if ("Pending".equals(applist.getStatus())) {
+                                            %> 
+                                            <!-- Link to comment/update page for pending appointments -->
+                                            <a href="comment.jsp?id=<%=applist.getId()%>" class="btn btn-success btn-sm" style="border-radius: 0.5rem;">Comment</a>
+                                            <%
+                                                } else {
+                                            %>
+                                            <!-- Disabled button for completed appointments -->
+                                            <button class="btn btn-secondary btn-sm disabled" style="border-radius: 0.5rem;"><i class="fa fa-check me-1"></i> Completed</button>
+                                            <%
+                                                }
+                                            %>
+                                        </td>
+                                    </tr>
+                                    <%
+                                        }
+                                    %>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

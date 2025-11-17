@@ -1,0 +1,71 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
+<%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@page isELIgnored="false" %>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>User Change Password</title>
+  <%@include file="component/allcss.jsp" %>
+  <style>
+    .my-card {
+      border-radius: 14px;
+      box-shadow: 0 8px 32px rgba(11,85,98,0.08);
+      background: white;
+      border: none;
+      padding: 2rem;
+      max-width: 450px;
+      margin: 3rem auto;
+    }
+    .page-title {
+      color: var(--primary);
+      font-weight: 700;
+    }
+    .btn.my-bg-color {
+      background: linear-gradient(90deg, #0b5562, #0d8a8a);
+      border-radius: 10px;
+      font-weight: 700;
+      transition: background-color 0.3s ease;
+    }
+    .btn.my-bg-color:hover {
+      background-color: #094b4d;
+    }
+  </style>
+</head>
+<body>
+
+<%@ include file="component/navbar.jsp" %>
+
+<c:if test="${empty userObj}">
+  <c:redirect url="/user_login.jsp" />
+</c:if>
+
+<div class="my-card">
+  <h3 class="page-title text-center mb-4">Change Password</h3>
+
+  <c:if test="${not empty successMsg}">
+    <div class="alert alert-success text-center">${successMsg}</div>
+    <c:remove var="successMsg" scope="session" />
+  </c:if>
+  <c:if test="${not empty errorMsg}">
+    <div class="alert alert-danger text-center">${errorMsg}</div>
+    <c:remove var="errorMsg" scope="session" />
+  </c:if>
+
+  <form action="userChangePassword" method="post" novalidate>
+    <div class="mb-3">
+      <label for="newPassword" class="form-label">Enter New Password</label>
+      <input id="newPassword" name="newPassword" type="password" class="form-control" placeholder="Enter new password" required minlength="6">
+    </div>
+    <div class="mb-3">
+      <label for="oldPassword" class="form-label">Enter Old Password</label>
+      <input id="oldPassword" name="oldPassword" type="password" class="form-control" placeholder="Enter old password" required>
+    </div>
+    <input type="hidden" name="userId" value="${userObj.id}" />
+    <button type="submit" class="btn my-bg-color text-white w-100">Change Password</button>
+  </form>
+</div>
+
+</body>
+</html>

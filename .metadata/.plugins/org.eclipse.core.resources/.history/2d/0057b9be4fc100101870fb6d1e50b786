@@ -1,0 +1,53 @@
+package com.hms.db;
+
+import java.sql.Connection;
+import java.sql.Statement;
+
+public class DBInitializer {
+    public static void createTables(Connection conn) {
+        try (Statement stmt = conn.createStatement()) {
+            // Repeat for each table!
+            stmt.execute("CREATE TABLE IF NOT EXISTS user_details (" +
+                "id INT PRIMARY KEY AUTO_INCREMENT," +
+                "fullname VARCHAR(45) NOT NULL," +
+                "email VARCHAR(45) NOT NULL UNIQUE," +
+                "password VARCHAR(45)," +
+                "PRIMARY KEY(id)" +
+                ");");
+
+            stmt.execute("CREATE TABLE IF NOT EXISTS doctor (" +
+                "id INT PRIMARY KEY AUTO_INCREMENT," +
+                "fullName VARCHAR(45)," +
+                "dateOfBirth VARCHAR(45)," +
+                "qualification VARCHAR(45)," +
+                "specialist VARCHAR(45)," +
+                "email VARCHAR(45)," +
+                "phone VARCHAR(45)," +
+                "password VARCHAR(45)" +
+                ");");
+
+            stmt.execute("CREATE TABLE IF NOT EXISTS appointment (" +
+                "id INT PRIMARY KEY AUTO_INCREMENT," +
+                "userId INT," +
+                "fullName VARCHAR(45)," +
+                "gender VARCHAR(45)," +
+                "age VARCHAR(45)," +
+                "appointmentDate VARCHAR(45)," +
+                "email VARCHAR(45)," +
+                "phone VARCHAR(45)," +
+                "diseases VARCHAR(45)," +
+                "doctorId INT," +
+                "address VARCHAR(45)," +
+                "status VARCHAR(45)" +
+                ");");
+
+            stmt.execute("CREATE TABLE IF NOT EXISTS specialist (" +
+                "id INT PRIMARY KEY AUTO_INCREMENT," +
+                "specialistname VARCHAR(45)" +
+                ");");
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}

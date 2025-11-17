@@ -1,0 +1,130 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<%@ taglib prefix="c" uri="jakarta.tags.core"%>
+<%@page isELIgnored="false"%>
+
+<!-- Custom Modern Navbar Styles -->
+<style>
+    .modern-nav {
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        background: rgba(255, 255, 255, 0.35) !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.25);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    }
+
+    .modern-nav .navbar-brand {
+        font-weight: 700;
+        color: #0d47a1 !important;
+        letter-spacing: 0.5px;
+    }
+
+    .modern-nav .nav-link {
+        color: #0d47a1 !important;
+        font-weight: 600;
+        margin-right: 10px;
+        padding: 8px 14px !important;
+        border-radius: 8px;
+        transition: 0.25s ease-in-out;
+    }
+
+    .modern-nav .nav-link:hover,
+    .modern-nav .nav-link.active {
+        background: rgba(13, 71, 161, 0.12);
+        color: #0a2e6b !important;
+    }
+
+    .modern-nav .dropdown-menu {
+        border-radius: 10px;
+        padding: 10px;
+        background: rgba(255, 255, 255, 0.9);
+        backdrop-filter: blur(10px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+
+    .modern-nav .dropdown-item:hover {
+        background: rgba(13, 71, 161, 0.15);
+        color: #0d47a1;
+        border-radius: 6px;
+    }
+
+    .navbar-toggler {
+        border: none;
+        outline: none;
+    }
+
+    .navbar-toggler:focus {
+        box-shadow: none;
+    }
+</style>
+
+<!-- Modern Glass Navbar -->
+<nav class="navbar navbar-expand-lg modern-nav sticky-top">
+    <div class="container-fluid">
+
+        <!-- Logo -->
+        <a class="navbar-brand" href="index.jsp">
+            <i class="fa-sharp fa-solid fa-hospital me-2"></i>
+            Doctor Patient Portal
+        </a>
+
+        <!-- Toggle Button for Mobile -->
+        <button class="navbar-toggler" type="button"
+            data-bs-toggle="collapse" data-bs-target="#adminNavbar"
+            aria-controls="adminNavbar" aria-expanded="false"
+            aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <!-- Navbar Items -->
+        <div class="collapse navbar-collapse" id="adminNavbar">
+            
+            <!-- Left Links -->
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                <li class="nav-item"><a class="nav-link active"
+                    aria-current="page" href="index.jsp"><i class="fa fa-home me-1"></i> HOME</a></li>
+
+                <li class="nav-item"><a class="nav-link active"
+                    aria-current="page" href="doctor.jsp">
+                    <i class="fa-solid fa-user-doctor me-1"></i> DOCTOR</a>
+                </li>
+
+                <li class="nav-item"><a class="nav-link active"
+                    aria-current="page" href="view_doctor.jsp">
+                    <i class="fa-solid fa-list me-1"></i> VIEW DOCTOR</a>
+                </li>
+
+                <li class="nav-item"><a class="nav-link active"
+                    aria-current="page" href="patient.jsp">
+                    <i class="fa-solid fa-user-injured me-1"></i> PATIENT</a>
+                </li>
+            </ul>
+
+            <!-- Right Side (Admin Session Detection) -->
+            <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+
+                <!-- If Admin is logged in -->
+                <c:if test="${not empty adminObj }">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle active" href="#" id="navbarDropdown"
+                            role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                           <i class="fa-solid fa-user-shield me-1"></i> Admin
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
+                            <li><a class="dropdown-item" href="../adminLogout">
+                                <i class="fa-solid fa-right-from-bracket me-2"></i> Logout</a>
+                            </li>
+                        </ul>
+                    </li>
+                </c:if>
+
+                <!-- If admin not logged in -->
+                <c:if test="${empty adminObj }">
+                    <c:redirect url="../admin_login.jsp" />
+                </c:if>
+
+            </ul>
+
+        </div>
+    </div>
+</nav>

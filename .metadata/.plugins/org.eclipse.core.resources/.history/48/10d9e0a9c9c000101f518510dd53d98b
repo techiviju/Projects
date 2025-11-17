@@ -1,0 +1,225 @@
+<%@page import="com.hms.entity.Specialist"%>
+<%@page import="java.util.List"%>
+<%@page import="com.hms.db.DBConnection"%>
+<%@page import="com.hms.dao.SpecialistDAO"%>
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+	pageEncoding="UTF-8"%>
+<%@ taglib prefix="c" uri="jakarta.tags.core"%>
+<%@page isELIgnored="false"%>
+
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Add Doctor</title>
+<%@include file="../component/allcss.jsp"%>
+
+<script>
+	function validateEmail() {
+		const emailInput = document.getElementById("email");
+		const emailError = document.getElementById("emailError");
+		const emailPattern = /^(?!.*\.\.)[a-zA-Z0-9._%+-]{2,64}@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+
+		const emailValue = emailInput.value.trim();
+		emailError.textContent = ""; // clear previous error
+		emailInput.classList.remove("is-invalid", "is-valid"); // reset styles
+
+		// Check if empty
+		if (emailValue === "") {
+			emailError.textContent = "Email address is required.";
+			emailInput.classList.add("is-invalid");
+			return false;
+		}
+
+		// Check pattern validity
+		if (!emailPattern.test(emailValue)) {
+			emailError.textContent = "Please enter a valid email address (e.g., user@example.com)";
+			emailInput.classList.add("is-invalid");
+			return false;
+		}
+
+		//  Valid email — green border
+		emailInput.classList.add("is-valid");
+		return true;
+	}
+
+	document.addEventListener("DOMContentLoaded", function() {
+		const form = document.querySelector("form");
+		const emailField = document.getElementById("email");
+
+		if (emailField) {
+			// Real-time feedback while typing
+			emailField.addEventListener("input", validateEmail);
+		}
+
+		if (form) {
+			// Validate on submit
+			form.addEventListener("submit", function(e) {
+				if (!validateEmail()) {
+					e.preventDefault(); // stop form submission
+					emailField.focus();
+				}
+			});
+		}
+	});
+	
+	
+	// DOB
+function validateDOB() {
+  const dobInput = document.getElementById("dateOfBirth");
+  const dobError = document.getElementById("dobError");
+  const dobValue = dobInput.value;
+
+  dobError.textContent = "";
+  dobInput.classList.remove("is-invalid", "is-valid");
+
+  if (!dobValue) {
+    dobError.textContent = "Date of Birth is required.";
+    dobInput.classList.add("is-invalid");
+    return false;
+  }
+
+  const dob = new Date(dobValue);
+  const today = new Date();
+  let age = today.getFullYear() - dob.getFullYear();
+  const monthDiff = today.getMonth() - dob.getMonth();
+  const dayDiff = today.getDate() - dob.getDate();
+
+  // Adjust for not yet reached birthday
+  if (monthDiff < 0 || (monthDiff === 0 && dayDiff < 0)) {
+    age--;
+  }
+
+  if (age < 26) {
+    dobError.textContent = "Doctor must be at least 26 years old.";
+    dobInput.classList.add("is-invalid");
+    return false;
+  }
+
+  if (age > 75) {
+    dobError.textContent = "Doctor's age cannot be more than 75 years.";
+    dobInput.classList.add("is-invalid");
+    return false;
+  }
+
+  dobInput.classList.add("is-valid");
+  return true;
+}
+
+document.addEventListener("DOMContentLoaded", function() {
+  const form = document.querySelector("form");
+  const dobField = document.getElementById("dateOfBirth");
+
+  // Prevent selecting future dates
+  if (dobField) {
+    const today = new Date().toISOString().split("T")[0];
+    dobField.setAttribute("max", today);
+    dobField.addEventListener("change", validateDOB);
+  }
+
+  if (form) {
+    form.addEventListener("submit", function(e) {
+      const validDOB = validateDOB();
+      if (!validDOB) {
+        e.preventDefault();
+        dobField.focus();
+      }
+    });
+  }
+});
+</script>
+
+</head>
+<body>
+	<%@include file="navbar.jsp"%>
+
+	<div class="container p-4">
+		<div class="row">
+			<div class="col-md-6 offset-md-3">
+				<div class="card my-card">
+					<div class="card-body p-4">
+						<h3 class="text-center myP-color mb-4">Add Doctor</h3>
+
+						<!-- Message Handling -->
+						<c:if test="${not empty successMsg }">
+							<div class="alert alert-success text-center" role="alert">${successMsg}</div>
+							<c:remove var="successMsg" scope="session" />
+						</c:if>
+						<c:if test="${not empty errorMsg }">
+							<div class="alert alert-danger text-center" role="alert">${errorMsg}</div>
+							<c:remove var="errorMsg" scope="session" />
+						</c:if>
+
+						<!-- Add Doctor Form -->
+						<form action="../addDoctor" method="post">
+							<div class="row g-3">
+								<div class="col-md-12">
+									<label class="form-label">Full Name</label> <input
+										name="fullName" type="text" placeholder="Enter full name"
+										class="form-control" required pattern="^[A-Za-z\s]{2,40}$"
+										maxlength="40"
+										title="Full Name must be 2-40 letters and spaces only (no numbers or special characters)"
+										oninput="this.value = this.value.replace(/[^A-Za-z ]/g, '')">
+								</div>
+								<div class="col-md-6">
+									<label class="form-label">Date of Birth</label> <input required
+										id="dateOfBirth" name="dateOfBirth" type="date"
+										class="form-control">
+									<div id="dobError" class="text-danger mt-1"
+										style="font-size: 0.9em;"></div>
+								</div>
+
+								<div class="col-md-6">
+									<label class="form-label">Qualification</label> <input
+										name="qualification" type="text"
+										placeholder="Enter qualification" class="form-control"
+										required>
+								</div>
+								<div class="col-md-6">
+									<label class="form-label">Specialist</label> <select
+										class="form-select" name="specialist" required>
+										<option disabled selected value="">---Select---</option>
+										<%
+										SpecialistDAO spDAO = new SpecialistDAO(DBConnection.getConn());
+										List<Specialist> spList = spDAO.getAllSpecialist();
+										for (Specialist s : spList) {
+										%>
+										<option><%=s.getSpecialistName()%></option>
+										<%
+										}
+										%>
+									</select>
+								</div>
+								<div class="col-md-6">
+									<label class="form-label">Email adedress</label> <input
+										required id="email" name="email" type="email"
+										placeholder="Enter Email" class="form-control" maxlength="75"
+										title="Please enter a valid email address (e.g., user@example.com)">
+									<div id="emailError" class="text-danger mt-1"
+										style="font-size: 0.9em;"></div>
+								</div>
+
+								<div class="col-md-6">
+									<label class="form-label">Phone</label> <input name="phone"
+										required="required" type="tel" placeholder="Enter Mobile no."
+										class="form-control" pattern="^\d{10}$" maxlength="10"
+										title="Please enter a valid 10-digit mobile number"
+										oninput="this.value = this.value.replace(/[^0-9]/g, '');">
+								</div>
+								<div class="col-md-6">
+									<label class="form-label">Password</label> <input
+										name="password" type="password" placeholder="Enter password"
+										class="form-control" required>
+								</div>
+								<div class="col-12 mt-4">
+									<button type="submit" class="btn btn-primary w-100">Register</button>
+								</div>
+							</div>
+						</form>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</body>
+</html>

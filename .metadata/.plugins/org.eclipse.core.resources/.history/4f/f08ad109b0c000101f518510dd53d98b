@@ -1,0 +1,160 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+	pageEncoding="UTF-8"%>
+<%@ taglib prefix="c" uri="jakarta.tags.core"%>
+<%@page isELIgnored="false"%>
+
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Doctor Login</title>
+<%@include file="component/allcss.jsp"%>
+<script>
+	function validateEmail() {
+		const emailInput = document.getElementById("email");
+		const emailError = document.getElementById("emailError");
+		const emailPattern = /^(?!.*\.\.)[a-zA-Z0-9._%+-]{2,64}@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+
+		const emailValue = emailInput.value.trim();
+		emailError.textContent = "";
+		emailInput.classList.remove("is-invalid", "is-valid");
+
+		if (emailValue === "") {
+			emailError.textContent = "Email address is required.";
+			emailInput.classList.add("is-invalid");
+			return false;
+		}
+
+		if (!emailPattern.test(emailValue)) {
+			emailError.textContent = "Please enter a valid email address (e.g., user@example.com)";
+			emailInput.classList.add("is-invalid");
+			return false;
+		}
+
+		emailInput.classList.add("is-valid");
+		return true;
+	}
+
+	document.addEventListener("DOMContentLoaded", function() {
+		const form = document.querySelector("form");
+		const emailField = document.getElementById("email");
+
+		if (emailField) {
+			// validate live while typing
+			emailField.addEventListener("input", validateEmail);
+		}
+
+		if (form) {
+			// validate before submit
+			form.addEventListener("submit", function(e) {
+				if (!validateEmail()) {
+					e.preventDefault();
+					emailField.focus();
+				}
+			});
+		}
+	});
+	
+	// password 
+	function validatePassword() {
+	    const passwordInput = document.getElementById("password");
+	    const passwordError = document.getElementById("passwordError");
+	    const passwordValue = passwordInput.value.trim();
+
+	    //  Rules: at least 8 chars, 1 uppercase, 1 lowercase, 1 number, 1 special char
+	    const passwordPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+
+	    // Clear previous state
+	    passwordError.textContent = "";
+	    passwordInput.classList.remove("is-invalid", "is-valid");
+
+	    if (passwordValue === "") {
+	      passwordError.textContent = "Password is required.";
+	      passwordInput.classList.add("is-invalid");
+	      return false;
+	    }
+
+	    if (!passwordPattern.test(passwordValue)) {
+	      passwordError.textContent = 
+	        "Password must be at least 8 characters and include uppercase, lowercase, number, and special character.";
+	      passwordInput.classList.add("is-invalid");
+	      return false;
+	    }
+
+	    passwordInput.classList.add("is-valid");
+	    return true;
+	  }
+
+	  document.addEventListener("DOMContentLoaded", function() {
+	    const form = document.querySelector("form");
+	    const passwordField = document.getElementById("password");
+
+	    if (passwordField) {
+	      passwordField.addEventListener("input", validatePassword); // validate as typing
+	    }
+
+	    if (form) {
+	      form.addEventListener("submit", function(e) {
+	        if (!validatePassword()) {
+	          e.preventDefault(); // block submission
+	          passwordField.focus();
+	        }
+	      });
+	    }
+	  });
+</script>
+
+</head>
+<body>
+	<!-- Navbar -->
+	<%@include file="component/navbar.jsp"%>
+
+	<!-- Doctor Login -->
+	<div class="container-fluid login-container">
+		<div class="row">
+			<div class="col-md-12">
+				<div class="card my-card login-card">
+					<div class="card-body p-4 p-md-5">
+						<h3 class="text-center myP-color mb-4">
+							<i class="fa-solid fa-stethoscope me-2"></i> Doctor Login
+						</h3>
+
+						<!-- Message Handling -->
+						<c:if test="${not empty successMsg }">
+							<div class="alert alert-success text-center" role="alert">${successMsg}</div>
+							<c:remove var="successMsg" scope="session" />
+						</c:if>
+						<c:if test="${not empty errorMsg }">
+							<div class="alert alert-danger text-center" role="alert">${errorMsg}</div>
+							<c:remove var="errorMsg" scope="session" />
+						</c:if>
+
+						<!-- Login Form -->
+						<form action="doctorLogin" method="post">
+							<div class="mb-3">
+								<label class="form-label">Email address</label> <input required
+									id="email" name="email" type="email" placeholder="Enter Email"
+									class="form-control" maxlength="75"
+									title="Please enter a valid email address (e.g., user@example.com)">
+								<div id="emailHelp" class="form-text">We'll never share
+									your email with anyone else.</div>
+								<div id="emailError" class="text-danger mt-1"
+									style="font-size: 0.9em;"></div>
+							</div>
+							<div class="mb-3">
+								<label class="form-label">Password</label> <input required
+									id="password" name="password" type="password"
+									placeholder="Enter password" class="form-control" minlength="8">
+								<div id="passwordError" class="text-danger mt-1"
+									style="font-size: 0.9em;"></div>
+							</div>
+							<button type="submit"
+								class="btn my-bg-color text-white w-100 mt-3">Login</button>
+						</form>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</body>
+</html>

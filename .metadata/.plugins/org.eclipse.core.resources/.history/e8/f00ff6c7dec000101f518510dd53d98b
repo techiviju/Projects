@@ -1,0 +1,237 @@
+<%@page import="com.hms.entity.Appointment"%>
+<%@page import="com.hms.dao.AppointmentDAO"%>
+<%@page import="com.hms.db.DBConnection"%>
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<%@ taglib prefix="c" uri="jakarta.tags.core"%>
+<%@page isELIgnored="false"%>
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Leave Comment</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <%@include file="../component/allcss.jsp"%>
+    
+<style>
+/* === CORE LAYOUT & BACKGROUND === */
+body {
+    min-height: 100vh;
+    font-family: 'Poppins', sans-serif;
+    position: relative;
+    padding-top: 70px; /* Space for fixed navbar */
+    display: flex;
+    flex-direction: column;
+}
+
+/* Background Image (Blurred Hospital) */
+body::before {
+	content: "";
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	/* Placeholder Image Path - Adjust as necessary */
+	background: url('../img/dashboard_bg.jpg') center center/cover no-repeat fixed; 
+	filter: blur(8px) brightness(1.05);
+	opacity: 0.95;
+	z-index: -1;
+}
+
+/* Page Banner */
+.page-banner {
+    background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url('../img/hospital1.jpg') center/cover no-repeat;
+    height: 25vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-bottom: 5px solid #007bff; /* Blue accent line */
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    margin-bottom: 20px;
+}
+
+.page-banner h2 {
+    font-weight: 700;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.6);
+}
+
+/* Glass Morphism Card Container */
+.my-card {
+    /* Glass effect background */
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    border-radius: 1.5rem;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.15);
+    transition: all 0.3s ease;
+    padding: 0 !important;
+}
+
+.my-card:hover {
+    box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.2);
+    transform: translateY(-2px);
+}
+
+.card-body {
+    background: rgba(255, 255, 255, 0.85); /* Semi-solid background for content */
+    border-radius: 1.5rem;
+    padding: 2rem !important;
+}
+
+/* Form Styling */
+.form-label {
+    font-weight: 600;
+    color: #007bff; /* Blue labels */
+    margin-bottom: 0.25rem;
+}
+
+.form-control[readonly] {
+    background-color: #e9ecef;
+    opacity: 1; /* Ensure full visibility */
+    font-weight: 500;
+    color: #495057;
+    border: 1px solid #ced4da;
+    border-radius: 0.5rem;
+}
+
+.form-control:not([readonly]) {
+    border-radius: 0.5rem;
+    border: 2px solid #ced4da;
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.form-control:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+/* Custom Textarea for Comment */
+textarea.form-control {
+    min-height: 120px;
+}
+
+/* Submit Button Style (Gradient) */
+.btn-submit {
+    font-weight: 700;
+    padding: 0.6rem 2rem;
+    border-radius: 2rem;
+    background-image: linear-gradient(to right, #007bff 0%, #00c6ff 100%);
+    border: none;
+    box-shadow: 0 4px 15px 0 rgba(0, 123, 255, 0.4);
+    transition: all 0.3s ease;
+}
+
+.btn-submit:hover {
+    background-image: linear-gradient(to right, #00c6ff 0%, #007bff 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px 0 rgba(0, 123, 255, 0.6);
+}
+
+/* Responsive Adjustments */
+@media (max-width: 767.98px) {
+    .page-banner {
+        height: 18vh;
+        margin-bottom: 15px;
+    }
+    .page-banner h2 {
+        font-size: 1.75rem;
+    }
+    .my-card {
+        margin: 10px;
+    }
+    .card-body {
+        padding: 1.5rem !important;
+    }
+    .col-md-6 {
+        margin-bottom: 10px; /* Add spacing between fields on mobile */
+    }
+    .btn-submit {
+        width: 100% !important; /* Full width button on small screens */
+    }
+}
+</style>
+</head>
+<body>
+    <%@include file="navbar.jsp"%>
+    
+    <!-- Check if doctor is logged in -->
+    <c:if test="${empty doctorObj }">
+        <c:redirect url="../doctor_login.jsp"></c:redirect>
+    </c:if>
+
+    <!-- Page Banner -->
+    <div class="container-fluid page-banner">
+        <h2 class="text-white"><i class="fa-solid fa-notes-medical me-2"></i> Leave a Treatment Comment</h2>
+    </div>
+
+    <div class="container p-4">
+        <div class="row justify-content-center">
+            <div class="col-12 col-md-10 col-lg-8">
+                <div class="card my-card">
+                    <div class="card-body">
+                        
+                        <!-- Message Handling -->
+                        <c:if test="${not empty successMsg }">
+                            <div class="alert alert-success text-center border-0 rounded-pill" role="alert"><i class="fa-solid fa-check-circle me-1"></i> ${successMsg}</div>
+                            <c:remove var="successMsg" scope="session" />
+                        </c:if>
+                        <c:if test="${not empty errorMsg }">
+                            <div class="alert alert-danger text-center border-0 rounded-pill" role="alert"><i class="fa-solid fa-times-circle me-1"></i> ${errorMsg}</div>
+                            <c:remove var="errorMsg" scope="session" />
+                        </c:if>
+
+                        <%
+                            // JSP Logic to fetch Appointment Details
+                            int id = Integer.parseInt(request.getParameter("id"));
+                            AppointmentDAO appDAO = new AppointmentDAO(DBConnection.getConn());
+                            Appointment appointment = appDAO.getAppointmentById(id);
+                        %>
+                        
+                        <form class="g-3" action="../updateStatus" method="post">
+                            <h5 class="text-center text-secondary mb-4 pb-2 border-bottom">Patient Details</h5>
+                            <div class="row g-3">
+                                
+                                <div class="col-12 col-md-6">
+                                    <label class="form-label"><i class="fa-solid fa-user me-1"></i> Full Name</label> 
+                                    <input name="fullName" type="text" class="form-control" readonly value="<%= appointment.getFullName()%>">
+                                </div>
+                                <div class="col-12 col-md-6">
+                                    <label class="form-label"><i class="fa-solid fa-baby me-1"></i> Age</label> 
+                                    <input name="age" type="text" class="form-control" readonly value="<%= appointment.getAge()%>">
+                                </div>
+                                <div class="col-12 col-md-6">
+                                    <label class="form-label"><i class="fa-solid fa-phone me-1"></i> Phone</label> 
+                                    <input name="phone" type="text" class="form-control" readonly value="<%= appointment.getPhone()%>">
+                                </div>
+                                <div class="col-12 col-md-6">
+                                    <label class="form-label"><i class="fa-solid fa-virus-covid me-1"></i> Diseases</label> 
+                                    <input name="diseases" type="text" class="form-control" readonly value="<%= appointment.getDiseases()%>">
+                                </div>
+                                
+                                <div class="col-12 mt-4">
+                                    <label class="form-label h5 text-primary"><i class="fa-solid fa-file-signature me-2"></i> Treatment/Prescription Notes</label>
+                                    <textarea name="comment" placeholder="Enter your detailed diagnosis, prescribed medications, and follow-up instructions here..." class="form-control" rows="6" required></textarea>
+                                </div>
+                                
+                                <!-- Hidden fields to pass IDs -->
+                                <input type="hidden" name="id" value="<%= appointment.getId()%>">
+                                <input type="hidden" name="doctorId" value="<%= appointment.getDoctorId()%>">
+                                
+                                <div class="col-12 text-center mt-5">
+                                    <button type="submit" class="btn btn-submit w-md-50 w-75">
+                                        <i class="fa-solid fa-paper-plane me-2"></i> Submit Treatment
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                        
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

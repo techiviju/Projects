@@ -1,0 +1,58 @@
+<%@page import="com.hms.entity.*"%>
+<%@page import="com.hms.dao.*"%>
+<%@page import="java.util.*"%>
+<%@page import="com.hms.db.DBConnection"%>
+<%@ taglib prefix="c" uri="jakarta.tags.core"%>
+<%@page isELIgnored="false"%>
+<!DOCTYPE html>
+<html>
+<head>
+<title>Doctor List</title>
+<%@include file="../component/allcss.jsp"%>
+<link rel="stylesheet" href="../component/theme.css">
+</head>
+<body>
+<%@include file="navbar.jsp"%>
+
+<div class="container py-5">
+  <div class="card my-card">
+    <div class="card-body">
+      <h3 class="text-center page-title mb-3">All Registered Doctors</h3>
+
+      <table class="table table-striped table-hover">
+        <thead>
+          <tr>
+            <th>Full Name</th>
+            <th>DOB</th>
+            <th>Qualification</th>
+            <th>Specialist</th>
+            <th>Email</th>
+            <th>Phone</th>
+            <th colspan="2" class="text-center">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+        <%
+          DoctorDAO dao = new DoctorDAO(DBConnection.getConn());
+          List<Doctor> list = dao.getAllDoctor();
+          for (Doctor d : list) {
+        %>
+          <tr>
+            <td><%=d.getFullName()%></td>
+            <td><%=d.getDateOfBirth()%></td>
+            <td><%=d.getQualification()%></td>
+            <td><%=d.getSpecialist()%></td>
+            <td><%=d.getEmail()%></td>
+            <td><%=d.getPhone()%></td>
+            <td><a class="btn btn-sm btn-primary" href="edit_doctor.jsp?id=<%=d.getId()%>">Edit</a></td>
+            <td><a class="btn btn-sm btn-danger" onclick="return confirm('Delete doctor?')" href="../deleteDoctor?id=<%=d.getId()%>">Delete</a></td>
+          </tr>
+        <% } %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

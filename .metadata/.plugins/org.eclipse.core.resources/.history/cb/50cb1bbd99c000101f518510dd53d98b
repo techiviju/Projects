@@ -1,0 +1,154 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+	pageEncoding="UTF-8"%>
+<!-- for jstl tag -->
+<%@ taglib prefix="c" uri="jakarta.tags.core"%>
+<!-- end of jstl tag -->
+<%@page isELIgnored="false"%>
+
+<!-- ===== Glassmorphism Navbar ===== -->
+<style>
+/* ====== GLASS NAVBAR STYLE ====== */
+.glass-navbar {
+  background: rgba(69, 104, 220, 0.55); /* semi-transparent blue */
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  transition: all 0.4s ease-in-out;
+}
+
+.glass-navbar .navbar-brand {
+  font-weight: 700;
+  font-size: 1.25rem;
+  color: #fff !important;
+  letter-spacing: 0.5px;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+
+.glass-navbar .nav-link {
+  color: #fff !important;
+  font-weight: 500;
+  padding: 0.6rem 1rem;
+  border-radius: 12px;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.glass-navbar .nav-link:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 10px rgba(255,255,255,0.25);
+}
+
+.glass-navbar .dropdown-menu {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(10px);
+  border: none;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.glass-navbar .dropdown-item {
+  font-weight: 500;
+  color: #333;
+  transition: background 0.2s;
+}
+.glass-navbar .dropdown-item:hover {
+  background: rgba(69, 104, 220, 0.15);
+  color: #4568dc;
+}
+
+/* Mobile hamburger customization */
+.navbar-toggler {
+  border: none;
+  background: rgba(255,255,255,0.25);
+  border-radius: 8px;
+}
+.navbar-toggler:focus {
+  box-shadow: none;
+  outline: none;
+}
+
+/* Animation for dropdown fade */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Responsive tweaks */
+@media (max-width: 992px) {
+  .glass-navbar .nav-link {
+    margin: 6px 0;
+  }
+}
+</style>
+
+<!-- ===== NAVBAR ===== -->
+<nav class="navbar navbar-expand-lg navbar-dark sticky-top glass-navbar">
+	<div class="container-fluid">
+		<a class="navbar-brand" href="index.jsp">
+			<i class="fa-sharp fa-solid fa-hospital me-2"></i>
+			Doctor Patient Portal
+		</a>
+
+		<button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+			data-bs-target="#navbarSupportedContent"
+			aria-controls="navbarSupportedContent" aria-expanded="false"
+			aria-label="Toggle navigation">
+			<span class="navbar-toggler-icon"></span>
+		</button>
+
+		<div class="collapse navbar-collapse" id="navbarSupportedContent">
+			<ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+
+				<!-- if user not logged in (GUEST) -->
+				<c:if test="${empty userObj and empty doctorObj and empty adminObj}">
+					<li class="nav-item">
+						<a class="nav-link active" href="index.jsp"><i class="fa fa-home me-1"></i> Home</a>
+					</li>
+					<li class="nav-item">
+						<a class="nav-link active" href="user_appointment.jsp"><i class="fa fa-book me-1"></i> Appointment</a>
+					</li>
+					<li class="nav-item">
+						<a class="nav-link active" href="user_login.jsp"><i class="fas fa-sign-in-alt me-1"></i> User</a>
+					</li>
+					<li class="nav-item">
+						<a class="nav-link active" href="doctor_login.jsp"><i class="fa-solid fa-user-doctor me-1"></i> Doctor</a>
+					</li>
+					<li class="nav-item">
+						<a class="nav-link active" href="admin_login.jsp"><i class="fa-solid fa-user-shield me-1"></i> Admin</a>
+					</li>
+				</c:if>
+
+				<!-- if user is logged in -->
+				<c:if test="${not empty userObj}">
+					<li class="nav-item">
+						<a class="nav-link active" href="user_appointment.jsp"><i class="fa fa-book me-1"></i> Appointment</a>
+					</li>
+					<li class="nav-item">
+						<a class="nav-link active" href="view_appointment.jsp"><i class="fa fa-calendar-check-o me-1"></i> View Appointment</a>
+					</li>
+					<li class="nav-item dropdown">
+						<a class="nav-link dropdown-toggle active" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+						   <i class="fa-solid fa-circle-user me-1"></i> ${userObj.fullName}
+						</a>
+						<ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
+							<li><a class="dropdown-item" href="change_password.jsp">Change Password</a></li>
+							<li><hr class="dropdown-divider"></li>
+							<li><a class="dropdown-item" href="userLogout">Logout</a></li>
+						</ul>
+					</li>
+				</c:if>
+				
+                <!-- Redirect if Doctor or Admin is logged in -->
+                <c:if test="${not empty doctorObj }">
+                    <c:redirect url="doctor/index.jsp" />
+                </c:if>
+                <c:if test="${not empty adminObj }">
+                    <c:redirect url="admin/index.jsp" />
+                </c:if>
+			</ul>
+		</div>
+	</div>
+</nav>
